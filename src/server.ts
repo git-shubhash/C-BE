@@ -1,9 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import https from 'https';
-import fs from 'fs';
-import path from 'path';
 import prescriptionsRouter from './routes/prescriptions';
 import medicinesRouter from './routes/medicines';
 import billsRouter from './routes/bills';
@@ -20,12 +17,6 @@ dotenv.config();
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '5000', 10);
-
-// SSL configuration
-const sslOptions = {
-  key: fs.readFileSync(path.join(__dirname, '../certs/localhost-key.pem')),
-  cert: fs.readFileSync(path.join(__dirname, '../certs/localhost.pem')),
-};
 
 // Middleware
 app.use(cors({
@@ -58,12 +49,10 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// Create HTTPS server
-const server = https.createServer(sslOptions, app);
-
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`HTTPS Server is running on port ${PORT}`);
+// Start HTTP server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`HTTP Server is running on port ${PORT}`);
   console.log(`Server is accessible at:`);
-  console.log(`- Local: https://localhost:${PORT}`);
-  console.log(`- Network: https://0.0.0.0:${PORT}`);
+  console.log(`- Local: http://localhost:${PORT}`);
+  console.log(`- Network: http://0.0.0.0:${PORT}`);
 });
