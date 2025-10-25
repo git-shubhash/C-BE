@@ -12,14 +12,20 @@ const puppeteer_1 = __importDefault(require("puppeteer"));
 dotenv_1.default.config();
 // Configure Cloudinary
 cloudinary_1.v2.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dlajv6pdq',
-    api_key: process.env.CLOUDINARY_API_KEY || '199568626316155',
-    api_secret: process.env.CLOUDINARY_API_SECRET || 'tQkOP_aGt53cqtNO2qYdcqXznrk',
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 // Configure Twilio
-const twilioClient = (0, twilio_1.default)(process.env.TWILIO_ACCOUNT_SID || 'ACde1b422cf428d2a29d949a935950ed81', process.env.TWILIO_AUTH_TOKEN || '6534f2f7a654a79929261ebb21d1b5a7');
+if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+    throw new Error('Twilio credentials are not set. Please configure TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN.');
+}
+const twilioClient = (0, twilio_1.default)(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 // SMS Configuration
-const SMS_FROM_NUMBER = process.env.SMS_FROM_NUMBER || '+18149850747';
+const SMS_FROM_NUMBER = process.env.SMS_FROM_NUMBER;
+if (!SMS_FROM_NUMBER) {
+    throw new Error('SMS_FROM_NUMBER is not set.');
+}
 const router = express_1.default.Router();
 // Get prescription by appointment_id
 router.get('/:appointment_id', async (req, res) => {

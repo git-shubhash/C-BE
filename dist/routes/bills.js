@@ -15,14 +15,20 @@ const puppeteer_1 = __importDefault(require("puppeteer"));
 dotenv_1.default.config();
 // Configure Cloudinary
 cloudinary_1.v2.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dlajv6pdq',
-    api_key: process.env.CLOUDINARY_API_KEY || '199568626316155',
-    api_secret: process.env.CLOUDINARY_API_SECRET || 'tQkOP_aGt53cqtNO2qYdcqXznrk',
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 // Configure Twilio
-const twilioClient = (0, twilio_1.default)(process.env.TWILIO_ACCOUNT_SID || 'ACde1b422cf428d2a29d949a935950ed81', process.env.TWILIO_AUTH_TOKEN || '6534f2f7a654a79929261ebb21d1b5a7');
+if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+    throw new Error('Twilio credentials are not set. Please configure TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN.');
+}
+const twilioClient = (0, twilio_1.default)(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 // SMS Configuration
-const SMS_FROM_NUMBER = process.env.SMS_FROM_NUMBER || '+18149850747';
+const SMS_FROM_NUMBER = process.env.SMS_FROM_NUMBER;
+if (!SMS_FROM_NUMBER) {
+    throw new Error('SMS_FROM_NUMBER is not set.');
+}
 const router = express_1.default.Router();
 // Get all bills
 router.get('/', async (req, res) => {
@@ -128,9 +134,12 @@ router.post('/', async (req, res) => {
 router.post('/razorpay/order', async (req, res) => {
     const { amount, currency = 'INR', receipt } = req.body;
     try {
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            throw new Error('Razorpay credentials are not set. Please configure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.');
+        }
         const razorpay = new razorpay_1.default({
-            key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_Qc3oYYIpn8jat3',
-            key_secret: process.env.RAZORPAY_KEY_SECRET || 'DAu7y0T4XL9qzxHI17uL1T19',
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET,
         });
         const options = {
             amount: Math.round(Number(amount) * 100), // amount in paise
@@ -147,7 +156,10 @@ router.post('/razorpay/order', async (req, res) => {
 });
 router.post('/razorpay/verify', async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-    const key_secret = process.env.RAZORPAY_KEY_SECRET || 'DAu7y0T4XL9qzxHI17uL1T19';
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!key_secret) {
+        return res.status(500).json({ valid: false, message: 'Payment verification unavailable. Missing RAZORPAY_KEY_SECRET.' });
+    }
     const hmac = crypto_1.default.createHmac('sha256', key_secret);
     hmac.update(razorpay_order_id + '|' + razorpay_payment_id);
     const generated_signature = hmac.digest('hex');
@@ -156,7 +168,7 @@ router.post('/razorpay/verify', async (req, res) => {
         try {
             // Fetch the order to get the receipt (which is appointment_id)
             const razorpay = new razorpay_1.default({
-                key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_Qc3oYYIpn8jat3',
+                key_id: process.env.RAZORPAY_KEY_ID,
                 key_secret: key_secret,
             });
             const order = await razorpay.orders.fetch(razorpay_order_id);

@@ -45,10 +45,6 @@ router.get('/appointment/:appointmentId', async (req, res) => {
       ORDER BY rp.prescription_id DESC
     `;
         const servicesResult = await connection_1.default.query(servicesQuery, [appointmentId]);
-        console.log('Services found for appointment:', servicesResult.rows.length);
-        if (servicesResult.rows.length > 0) {
-            console.log('Sample service data:', servicesResult.rows[0]);
-        }
         // Return structured data
         res.json({
             patient: patient,
@@ -65,7 +61,6 @@ router.patch('/:prescriptionId/test-conducted', async (req, res) => {
     try {
         const { prescriptionId } = req.params;
         const { test_conducted } = req.body;
-        console.log(`Updating test conducted for prescription ${prescriptionId} to ${test_conducted}`);
         const updateQuery = `
       UPDATE radiology_prescriptions 
       SET 
@@ -81,7 +76,6 @@ router.patch('/:prescriptionId/test-conducted', async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'Radiology prescription not found' });
         }
-        console.log('Update result:', result.rows[0]);
         // Get the updated prescription with service details
         const getQuery = `
       SELECT 
@@ -100,7 +94,6 @@ router.patch('/:prescriptionId/test-conducted', async (req, res) => {
       WHERE rp.prescription_id = $1
     `;
         const prescriptionResult = await connection_1.default.query(getQuery, [prescriptionId]);
-        console.log('Final result sent to frontend:', prescriptionResult.rows[0]);
         res.json(prescriptionResult.rows[0]);
     }
     catch (error) {
